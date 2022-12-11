@@ -1,2 +1,2 @@
 # Statistical-Analysis-In-R
-Basic statistical analysis using R programming language.
+Basic statistical analysis on data using R programming language.
