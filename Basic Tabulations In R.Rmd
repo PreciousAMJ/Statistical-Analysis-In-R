@@ -1,0 +1,122 @@
+---
+title: "Basic Tabulations In R"
+author: "Precious_AMJ"
+date: "`r Sys.Date()`"
+output:
+---
+
+
+
+----
+
+## Import DataSet
+to open our data set, we can either go to environment -\> import data set and open it or use the read.csv function;
+
+```{r}
+Cancer_Data <- read.csv("C:/Users/HP/Downloads/Cancer Data.csv", header = TRUE, sep = ",") ## note even if header and sep were not included the result will be the same, cos R takes the default header as true and sep as by a comma
+```
+
+## View The Dataset
+```{r}
+View(Cancer_Data)
+
+print(Cancer_Data)
+
+dim(Cancer_Data) # to get the dimension of the table
+```
+----
+
+
+```{r}
+Cancer_Data["age"] # to select a column
+
+Cancer_Data[2] # we can also use the column index, instead of its name
+
+Cancer_Data[c("age","gender", "bmi")] # to select more than one column
+
+Cancer_Data[c(2,3,4)]# we can also use the column index
+```
+
+
+
+```{r}
+# we can also call the column of a table using the dollar sign
+Cancer_Data$gender
+
+```
+----
+
+
+## Slicing
+
+```{r}
+# to select all rows in the 2nd column (age)
+Cancer_Data[, 2]
+
+Cancer_Data[, "age"] # instead of the index of the column we can also use the column name
+
+# to see the value of the first five rows[1 to 5] of the every column
+Cancer_Data[1:5, ]
+
+
+Cancer_Data[2, 3] # will show the value of the 2nd row of the 3rd colunn
+Cancer_Data[1:5, 3] # to see the value of the first five rows[1to5] of the 3rd column
+```
+----
+
+
+## Using Dplyr
+```{r}
+library(dplyr)
+
+Cancer_Data %>%
+  select("age", gender, bmi) # note using this function qouting strings is not neccesary
+
+# we can select based on the column index
+Cancer_Data %>%
+  select(2,3,4)
+
+Cancer_Data %>%
+  select(2:4) # selecting columns 2 to 4
+```
+
+
+## Categorise A Column
+```{r}
+gender <- Cancer_Data[, "gender"] # assign the column to a variable "gender"
+gender
+```
+
+
+
+though gender contains only two categories/levels (distinct) of data, r wil not see it as a category
+to make R see it as a category, we use the as.factor function
+
+```{r}
+gender <- as.factor(Cancer_Data[, "gender"])
+```
+
+
+
+```{r}
+table(gender) # will create a contigency table based on the count of the distinct levels
+```
+----
+
+
+```{r}
+fruit <- Cancer_Data[, "fruit"]
+
+veg <- Cancer_Data[, "veg"]
+
+fruitveg <- fruit + veg
+
+table(fruitveg)
+
+hist(fruitveg)
+```
+```{r}
+bmi <- Cancer_Data[, "bmi"]
+
+summary(bmi) # will give us the statistical summary of the bmi column
+```
