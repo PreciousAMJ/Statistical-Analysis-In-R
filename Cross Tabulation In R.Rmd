@@ -1,6 +1,6 @@
 ---
 title: "Cross Tabulation"
-output:
+output: "rmarkdown::github_document"
 ---
 
 
@@ -13,7 +13,7 @@ Load the dataset
 ```{r}
 Diabetes_Dataset <- read.csv("C:/Users/HP/Documents/Datasets/Diabetes Dataset.csv")
 
-View(Diabetes_Dataset) # will display the dataset in a new window
+View(Diabetes_Dataset)
 
 dim(Diabetes_Dataset) # To get the num of rows and columns
 
