@@ -1,4 +1,4 @@
-Cross Tabulation
+Basic Cross Tabulations In R
 ================
 
 ------------------------------------------------------------------------
@@ -6,7 +6,7 @@ Cross Tabulation
 Load the dataset
 
 ``` r
-Diabetes_Dataset <- read.csv("C:/Users/HP/Documents/Datasets/Diabetes Dataset.csv")
+Diabetes_Dataset <- read.csv("C:/Users/HP/Documents/Datasets/Diabetes Dataset.csv") # you can get the csv file from this repository and specify your file path.
 
 View(Diabetes_Dataset)
 
