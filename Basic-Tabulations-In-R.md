@@ -1,3 +1,4 @@
+![README-unnamed-chunk-11-1](https://user-images.githubusercontent.com/110697869/207032930-eb0c59c7-c0cf-4884-b4a1-10f675147336.png)
 Basic Tabulations In R
 ================
 
