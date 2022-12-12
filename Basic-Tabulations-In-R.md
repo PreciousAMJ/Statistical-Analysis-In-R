@@ -722,7 +722,7 @@ table(fruitveg)
 hist(fruitveg)
 ```
 
-![](Basic-Tabulations-In-R_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
+![](README_figs/README-unnamed-chunk-11-1.png)<!-- -->
 
 ``` r
 bmi <- Cancer_Data[, "bmi"]
