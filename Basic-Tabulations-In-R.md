@@ -15,7 +15,7 @@ Cancer_Data <- read.csv("C:/Users/HP/Documents/Datasets/Cancer Data.csv", header
 ## View The Dataset
 
 ``` r
-View(Cancer_Data)
+View(Cancer_Data) # displays the dataset in a new window
 
 print(Cancer_Data)
 ```
