@@ -8,7 +8,7 @@ Load the dataset
 ``` r
 Diabetes_Dataset <- read.csv("C:/Users/HP/Documents/Datasets/Diabetes Dataset.csv") # you can get the csv file from this repository and specify your file path.
 
-View(Diabetes_Dataset)
+View(Diabetes_Dataset) # will display the dataset in a new window
 
 dim(Diabetes_Dataset) # To get the num of rows and columns
 ```
@@ -104,7 +104,7 @@ table(Outcome2) # display the counts including the missings (NAs)
     ##   no  yes <NA> 
     ##  330   60   13
 
-# Let’s continue with other variables
+### Let’s continue with other variables
 
 ``` r
 Height <- Diabetes_Dataset$height
