@@ -1,0 +1,579 @@
+Good Practice Steps Before Regression
+================
+
+``` r
+COPD_Data <- read.csv("C:/Users/HP/Documents/Datasets/COPD_student_dataset.csv")
+
+class(COPD_Data)
+```
+
+    ## [1] "data.frame"
+
+``` r
+class(COPD_Data$Diabetes) # to see the data type of the column "diabetes"
+```
+
+    ## [1] "integer"
+
+``` r
+head(COPD_Data)
+```
+
+    ##   X  ID AGE PackHistory COPDSEVERITY MWT1 MWT2 MWT1Best FEV1 FEV1PRED  FVC
+    ## 1 1  58  77          60       SEVERE  120  120      120 1.21       36 2.40
+    ## 2 2  57  79          50     MODERATE  165  176      176 1.09       56 1.64
+    ## 3 3  62  80          11     MODERATE  201  180      201 1.52       68 2.30
+    ## 4 4 145  56          60  VERY SEVERE  210  210      210 0.47       14 1.14
+    ## 5 5 136  65          68       SEVERE  204  210      210 1.07       42 2.91
+    ## 6 6  84  67          26     MODERATE  216  180      216 1.09       50 1.99
+    ##   FVCPRED CAT HAD  SGRQ AGEquartiles copd gender smoking Diabetes muscular
+    ## 1      98  25   8 69.55            4    3      1       2        1        0
+    ## 2      65  12  21 44.24            4    2      0       2        1        0
+    ## 3      86  22  18 44.09            4    2      0       2        1        0
+    ## 4      27  28  26 62.04            1    4      1       2        0        0
+    ## 5      98  32  18 75.56            1    3      1       2        0        1
+    ## 6      60  29  21 73.82            2    2      0       1        1        0
+    ##   hypertension AtrialFib IHD
+    ## 1            0         1   0
+    ## 2            0         1   1
+    ## 3            0         1   0
+    ## 4            1         1   0
+    ## 5            1         0   0
+    ## 6            0         1   0
+
+``` r
+View(COPD_Data)
+```
+
+``` r
+# install.packages("Hmisc")
+
+library("Hmisc")
+```
+
+    ## Warning: package 'Hmisc' was built under R version 4.2.2
+
+    ## Loading required package: lattice
+
+    ## Loading required package: survival
+
+    ## Warning: package 'survival' was built under R version 4.2.2
+
+    ## Loading required package: Formula
+
+    ## Loading required package: ggplot2
+
+    ## Warning: package 'ggplot2' was built under R version 4.2.1
+
+    ## 
+    ## Attaching package: 'Hmisc'
+
+    ## The following objects are masked from 'package:base':
+    ## 
+    ##     format.pval, units
+
+We examine the datatype and distribution for all of these variables.
+This can be done using the describe() function from the ‘Hmisc’ package.
+This function allows you to examine the different variables, providing
+the number of values, the range of the values, the number of missing
+values, the mean, and the different quartiles of values in our
+variables.
+
+After you’ve downloaded the package, you can type the command
+describe(COPD).
+
+``` r
+describe(COPD_Data)
+```
+
+    ## COPD_Data 
+    ## 
+    ##  24  Variables      101  Observations
+    ## --------------------------------------------------------------------------------
+    ## X 
+    ##        n  missing distinct     Info     Mean      Gmd      .05      .10 
+    ##      101        0      101        1       51       34        6       11 
+    ##      .25      .50      .75      .90      .95 
+    ##       26       51       76       91       96 
+    ## 
+    ## lowest :   1   2   3   4   5, highest:  97  98  99 100 101
+    ## --------------------------------------------------------------------------------
+    ## ID 
+    ##        n  missing distinct     Info     Mean      Gmd      .05      .10 
+    ##      101        0       97        1    91.41    59.56       10       18 
+    ##      .25      .50      .75      .90      .95 
+    ##       49       87      143      159      164 
+    ## 
+    ## lowest :   1   2   3   6   8, highest: 165 166 167 168 169
+    ## --------------------------------------------------------------------------------
+    ## AGE 
+    ##        n  missing distinct     Info     Mean      Gmd      .05      .10 
+    ##      101        0       33    0.998     70.1     8.73       55       60 
+    ##      .25      .50      .75      .90      .95 
+    ##       65       71       75       79       81 
+    ## 
+    ## lowest : 44 49 52 53 54, highest: 80 81 82 83 88
+    ## --------------------------------------------------------------------------------
+    ## PackHistory 
+    ##        n  missing distinct     Info     Mean      Gmd      .05      .10 
+    ##      101        0       48    0.998     39.7    27.35        6       10 
+    ##      .25      .50      .75      .90      .95 
+    ##       20       36       54       75       90 
+    ## 
+    ## lowest :   1   3   5   6   8, highest:  90 100 103 105 109
+    ## --------------------------------------------------------------------------------
+    ## COPDSEVERITY 
+    ##        n  missing distinct 
+    ##      101        0        4 
+    ##                                                           
+    ## Value             MILD    MODERATE      SEVERE VERY SEVERE
+    ## Frequency           23          43          27           8
+    ## Proportion       0.228       0.426       0.267       0.079
+    ## --------------------------------------------------------------------------------
+    ## MWT1 
+    ##        n  missing distinct     Info     Mean      Gmd      .05      .10 
+    ##       99        2       69        1    385.9    117.6    212.7    226.0 
+    ##      .25      .50      .75      .90      .95 
+    ##    300.0    419.0    460.5    495.2    510.1 
+    ## 
+    ## lowest : 120 165 201 204 210, highest: 511 522 558 576 688
+    ## --------------------------------------------------------------------------------
+    ## MWT2 
+    ##        n  missing distinct     Info     Mean      Gmd      .05      .10 
+    ##      100        1       72        1    390.3    121.7    210.0    237.0 
+    ##      .25      .50      .75      .90      .95 
+    ##    303.8    399.0    459.0    518.7    541.1 
+    ## 
+    ## lowest : 120 176 180 210 230, highest: 563 575 577 582 699
+    ## --------------------------------------------------------------------------------
+    ## MWT1Best 
+    ##        n  missing distinct     Info     Mean      Gmd      .05      .10 
+    ##      100        1       71        1    399.1    119.7    215.7    240.0 
+    ##      .25      .50      .75      .90      .95 
+    ##    303.8    420.0    465.2    518.7    540.9 
+    ## 
+    ## lowest : 120 176 201 210 216, highest: 558 575 577 582 699
+    ## --------------------------------------------------------------------------------
+    ## FEV1 
+    ##        n  missing distinct     Info     Mean      Gmd      .05      .10 
+    ##      101        0       85        1    1.604   0.7645     0.68     0.73 
+    ##      .25      .50      .75      .90      .95 
+    ##     1.10     1.60     1.96     2.70     2.90 
+    ## 
+    ## lowest : 0.45 0.47 0.51 0.60 0.65, highest: 2.93 2.97 3.02 3.06 3.18
+    ## --------------------------------------------------------------------------------
+    ## FEV1PRED 
+    ##        n  missing distinct     Info     Mean      Gmd      .05      .10 
+    ##      101        0       51    0.999    58.53    25.56       24       30 
+    ##      .25      .50      .75      .90      .95 
+    ##       42       60       75       90       93 
+    ## 
+    ## lowest :   3.29   3.39  14.00  17.00  24.00, highest:  92.00  93.00  95.00  98.00 102.00
+    ## --------------------------------------------------------------------------------
+    ## FVC 
+    ##        n  missing distinct     Info     Mean      Gmd      .05      .10 
+    ##      101        0       80        1    2.955    1.108     1.56     1.89 
+    ##      .25      .50      .75      .90      .95 
+    ##     2.27     2.77     3.63     4.39     4.70 
+    ## 
+    ## lowest : 1.14 1.31 1.47 1.52 1.56, highest: 4.72 4.90 5.15 5.23 5.37
+    ## --------------------------------------------------------------------------------
+    ## FVCPRED 
+    ##        n  missing distinct     Info     Mean      Gmd      .05      .10 
+    ##      101        0       57    0.999    86.44    24.92       53       60 
+    ##      .25      .50      .75      .90      .95 
+    ##       71       84      103      118      122 
+    ## 
+    ## lowest :  27  45  48  51  53, highest: 121 122 123 125 132
+    ## --------------------------------------------------------------------------------
+    ## CAT 
+    ##        n  missing distinct     Info     Mean      Gmd      .05      .10 
+    ##      101        0       30    0.997    19.34    12.28        5        5 
+    ##      .25      .50      .75      .90      .95 
+    ##       12       18       24       29       30 
+    ## 
+    ## lowest :   3   4   5   6   7, highest:  29  30  31  32 188
+    ## --------------------------------------------------------------------------------
+    ## HAD 
+    ##        n  missing distinct     Info     Mean      Gmd      .05      .10 
+    ##      101        0       28    0.997    11.18    8.984        1        2 
+    ##      .25      .50      .75      .90      .95 
+    ##        6       10       15       22       26 
+    ## 
+    ## lowest :  0.0  1.0  2.0  3.0  4.0, highest: 23.0 26.0 29.0 30.0 56.2
+    ## --------------------------------------------------------------------------------
+    ## SGRQ 
+    ##        n  missing distinct     Info     Mean      Gmd      .05      .10 
+    ##      101        0       89        1    40.19    20.88    10.92    16.29 
+    ##      .25      .50      .75      .90      .95 
+    ##    28.41    38.21    55.23    67.56    72.24 
+    ## 
+    ## lowest :  2.00  8.12  8.25 10.01 10.92, highest: 72.56 73.82 75.56 76.50 77.44
+    ## --------------------------------------------------------------------------------
+    ## AGEquartiles 
+    ##        n  missing distinct     Info     Mean      Gmd 
+    ##      101        0        4    0.936    2.475    1.246 
+    ##                                   
+    ## Value          1     2     3     4
+    ## Frequency     26    24    28    23
+    ## Proportion 0.257 0.238 0.277 0.228
+    ## --------------------------------------------------------------------------------
+    ## copd 
+    ##        n  missing distinct     Info     Mean      Gmd 
+    ##      101        0        4    0.892    2.198     0.96 
+    ##                                   
+    ## Value          1     2     3     4
+    ## Frequency     23    43    27     8
+    ## Proportion 0.228 0.426 0.267 0.079
+    ## --------------------------------------------------------------------------------
+    ## gender 
+    ##        n  missing distinct     Info      Sum     Mean      Gmd 
+    ##      101        0        2    0.688       65   0.6436   0.4634 
+    ## 
+    ## --------------------------------------------------------------------------------
+    ## smoking 
+    ##        n  missing distinct     Info     Mean      Gmd 
+    ##      101        0        2      0.4    1.842   0.2693 
+    ##                       
+    ## Value          1     2
+    ## Frequency     16    85
+    ## Proportion 0.158 0.842
+    ## --------------------------------------------------------------------------------
+    ## Diabetes 
+    ##        n  missing distinct     Info      Sum     Mean      Gmd 
+    ##      101        0        2    0.494       21   0.2079   0.3327 
+    ## 
+    ## --------------------------------------------------------------------------------
+    ## muscular 
+    ##        n  missing distinct     Info      Sum     Mean      Gmd 
+    ##      101        0        2    0.458       19   0.1881   0.3085 
+    ## 
+    ## --------------------------------------------------------------------------------
+    ## hypertension 
+    ##        n  missing distinct     Info      Sum     Mean      Gmd 
+    ##      101        0        2    0.314       12   0.1188   0.2115 
+    ## 
+    ## --------------------------------------------------------------------------------
+    ## AtrialFib 
+    ##        n  missing distinct     Info      Sum     Mean      Gmd 
+    ##      101        0        2    0.476       20    0.198   0.3208 
+    ## 
+    ## --------------------------------------------------------------------------------
+    ## IHD 
+    ##        n  missing distinct     Info      Sum     Mean      Gmd 
+    ##      101        0        2    0.244        9  0.08911    0.164 
+    ## 
+    ## --------------------------------------------------------------------------------
+
+You may then want to examine each variable in more detail using summary
+statistics and tabulations. These allow you to spot missing data or
+outliers, which you might need to exclude for the next stages of your
+analysis.
+
+For categorical variables, you can tabulate the data using the
+CrossTable() function from the ‘gmodels’ package, then use the
+sum(is.na()) functions to check for missing values
+
+``` r
+# install.packages("gmodels")
+
+library("gmodels")
+```
+
+    ## Warning: package 'gmodels' was built under R version 4.2.2
+
+``` r
+CrossTable(COPD_Data$copd) # will give the distinct observations and their proportion
+```
+
+    ## 
+    ##  
+    ##    Cell Contents
+    ## |-------------------------|
+    ## |                       N |
+    ## |         N / Table Total |
+    ## |-------------------------|
+    ## 
+    ##  
+    ## Total Observations in Table:  101 
+    ## 
+    ##  
+    ##           |         1 |         2 |         3 |         4 | 
+    ##           |-----------|-----------|-----------|-----------|
+    ##           |        23 |        43 |        27 |         8 | 
+    ##           |     0.228 |     0.426 |     0.267 |     0.079 | 
+    ##           |-----------|-----------|-----------|-----------|
+    ## 
+    ## 
+    ## 
+    ## 
+
+``` r
+sum(is.na(COPD_Data$copd)) # to get the sum of the missing rows
+```
+
+    ## [1] 0
+
+For continuous variables, such as MWT1Best, use the summary() command,
+which will allow you to look at the mean, median, minimum, maximum, 1st
+and 3rd quartiles, and the number of missing values (NAs):
+
+``` r
+summary(COPD_Data$MWT1Best)
+```
+
+    ##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max.    NA's 
+    ##   120.0   303.8   420.0   399.1   465.2   699.0       1
+
+A quick visual way to examine continuous variables is with a histogram
+using hist(), as you saw earlier in the course. You can use the plot to
+assess the distribution and identify any outliers. So, for example,
+using the AGE variable, you would get this output:
+
+``` r
+hist(COPD_Data$AGE)
+```
+
+![](README_figs/README-unnamed-chunk-8-1.png)<!-- -->
+
+When you are familiar with each variable, the next stage is to examine
+the relationship between predictors using correlations and tabulations.
+For continuous variables, we will be using pairwise correlations and
+scatterplot matrices, while we will be using cross tabulations for
+categorical variables. These will help you identify potential
+associations in your candidate predictor variables that could be
+problematic if included together in your multivariable model.
+
+The output of this command will be Pearson’s correlation coefficient by
+default. If you want Spearman’s correlation coefficient, you can specify
+this by adding method = ‘spearman’ in the cor() command parentheses.
+
+So, for example, let’s say you want Pearson’s pairwise correlation
+coefficient for the variables AGE, PackHistory, FEV1, FEV1PRED, FVC,
+CAT, HAD, and SGRQ. You’ll need to create a *correlation matrix* to view
+all the different correlation coefficients. This can be done using the
+following code:
+
+``` r
+my_data <- COPD_Data[, c("AGE", "PackHistory", "FEV1", "FEV1PRED", "FVC", "CAT", "HAD", "SGRQ")]
+
+cor_matrix <- cor(my_data) # note the default is pearson
+
+cor_matrix # to view the correlation matrix
+```
+
+    ##                      AGE  PackHistory        FEV1     FEV1PRED         FVC
+    ## AGE          1.000000000 -0.001545507 -0.10212241  0.067458738 -0.14522574
+    ## PackHistory -0.001545507  1.000000000 -0.13150514 -0.131340964 -0.09307289
+    ## FEV1        -0.102122406 -0.131505136  1.00000000  0.776110492  0.82016501
+    ## FEV1PRED     0.067458738 -0.131340964  0.77611049  1.000000000  0.52152997
+    ## FVC         -0.145225737 -0.093072888  0.82016501  0.521529971  1.00000000
+    ## CAT          0.083361126 -0.143247732 -0.06480429  0.007505937 -0.15885862
+    ## HAD         -0.227120404  0.027876353 -0.14814655 -0.109460950 -0.12968238
+    ## SGRQ        -0.139361205  0.032126419 -0.30340676 -0.331794903 -0.22009022
+    ##                      CAT         HAD        SGRQ
+    ## AGE          0.083361126 -0.22712040 -0.13936121
+    ## PackHistory -0.143247732  0.02787635  0.03212642
+    ## FEV1        -0.064804288 -0.14814655 -0.30340676
+    ## FEV1PRED     0.007505937 -0.10946095 -0.33179490
+    ## FVC         -0.158858621 -0.12968238 -0.22009022
+    ## CAT          1.000000000  0.16191871  0.28778173
+    ## HAD          0.161918708  1.00000000  0.39579044
+    ## SGRQ         0.287781730  0.39579044  1.00000000
+
+``` r
+round(cor_matrix, 2) # to round it up to 2 decimal place
+```
+
+    ##               AGE PackHistory  FEV1 FEV1PRED   FVC   CAT   HAD  SGRQ
+    ## AGE          1.00        0.00 -0.10     0.07 -0.15  0.08 -0.23 -0.14
+    ## PackHistory  0.00        1.00 -0.13    -0.13 -0.09 -0.14  0.03  0.03
+    ## FEV1        -0.10       -0.13  1.00     0.78  0.82 -0.06 -0.15 -0.30
+    ## FEV1PRED     0.07       -0.13  0.78     1.00  0.52  0.01 -0.11 -0.33
+    ## FVC         -0.15       -0.09  0.82     0.52  1.00 -0.16 -0.13 -0.22
+    ## CAT          0.08       -0.14 -0.06     0.01 -0.16  1.00  0.16  0.29
+    ## HAD         -0.23        0.03 -0.15    -0.11 -0.13  0.16  1.00  0.40
+    ## SGRQ        -0.14        0.03 -0.30    -0.33 -0.22  0.29  0.40  1.00
+
+This is impotant because we don’t want to include variables that are
+correlated in our model. if two variables are correlated, then one
+already accounts for the other, axdding them to the model is a waste of
+variables.
+
+There is an easy way to visually assess the correlation using the
+pairs() function.
+
+``` r
+pairs(~AGE+PackHistory+FEV1+FEV1PRED+FVC+CAT+HAD+SGRQ,  data = COPD_Data) # note that they are continous variables, this is not suitable fo categorical
+```
+
+![](README_figs/README-unnamed-chunk-10-1.png)<!-- -->
+
+``` r
+# install.packages("GGally")
+
+library("GGally")
+```
+
+    ## Warning: package 'GGally' was built under R version 4.2.2
+
+    ## Registered S3 method overwritten by 'GGally':
+    ##   method from   
+    ##   +.gg   ggplot2
+
+``` r
+ggpairs(my_data)
+```
+
+![](README_figs/README-unnamed-chunk-11-1.png)<!-- -->
+
+To examine associations between categorical variables, you can use cross
+tabulations. For this, you will again use the CrossTable() function from
+the ‘gmodels’ package, but adding your variables in the following
+format:
+CrossTable(mydata![myrowvar, mydata](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;myrowvar%2C%20mydata "myrowvar, mydata")mycolvar).
+
+So, let’s say for example that you’d like to check whether the same
+people have ischemic heart disease (variable IHD) and hypertension:
+
+``` r
+CrossTable(COPD_Data$hypertension, COPD_Data$IHD) # so it's going to group IHD by hypertension
+```
+
+    ## 
+    ##  
+    ##    Cell Contents
+    ## |-------------------------|
+    ## |                       N |
+    ## | Chi-square contribution |
+    ## |           N / Row Total |
+    ## |           N / Col Total |
+    ## |         N / Table Total |
+    ## |-------------------------|
+    ## 
+    ##  
+    ## Total Observations in Table:  101 
+    ## 
+    ##  
+    ##                        | COPD_Data$IHD 
+    ## COPD_Data$hypertension |         0 |         1 | Row Total | 
+    ## -----------------------|-----------|-----------|-----------|
+    ##                      0 |        81 |         8 |        89 | 
+    ##                        |     0.000 |     0.001 |           | 
+    ##                        |     0.910 |     0.090 |     0.881 | 
+    ##                        |     0.880 |     0.889 |           | 
+    ##                        |     0.802 |     0.079 |           | 
+    ## -----------------------|-----------|-----------|-----------|
+    ##                      1 |        11 |         1 |        12 | 
+    ##                        |     0.000 |     0.004 |           | 
+    ##                        |     0.917 |     0.083 |     0.119 | 
+    ##                        |     0.120 |     0.111 |           | 
+    ##                        |     0.109 |     0.010 |           | 
+    ## -----------------------|-----------|-----------|-----------|
+    ##           Column Total |        92 |         9 |       101 | 
+    ##                        |     0.911 |     0.089 |           | 
+    ## -----------------------|-----------|-----------|-----------|
+    ## 
+    ## 
+
+This cross tabulation shows you that 8 patients had IHD only, and 11
+patients had hypertension only, one person had both hypertension and IHD
+and 81 had neither. So, you would not be concerned if you wanted to
+include both of these in the model, beacuse they are not corellated.
+
+------------------------------------------------------------------------
+
+``` r
+COPD_Data$copd <- as.factor(COPD_Data$copd) # so R will recognise it as a categorical variable.
+```
+
+``` r
+LM <- lm(COPD_Data$MWT1Best ~ COPD_Data$copd, data = COPD_Data)
+
+summary(LM)
+```
+
+    ## 
+    ## Call:
+    ## lm(formula = COPD_Data$MWT1Best ~ COPD_Data$copd, data = COPD_Data)
+    ## 
+    ## Residuals:
+    ##     Min      1Q  Median      3Q     Max 
+    ## -248.67  -51.18    0.91   64.23  330.33 
+    ## 
+    ## Coefficients:
+    ##                 Estimate Std. Error t value Pr(>|t|)    
+    ## (Intercept)       458.09      20.44  22.410  < 2e-16 ***
+    ## COPD_Data$copd2   -51.09      25.43  -2.009  0.04735 *  
+    ## COPD_Data$copd3   -89.42      27.82  -3.215  0.00178 ** 
+    ## COPD_Data$copd4  -167.21      40.24  -4.156 7.05e-05 ***
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ## 
+    ## Residual standard error: 98.03 on 96 degrees of freedom
+    ##   (1 observation deleted due to missingness)
+    ## Multiple R-squared:  0.1792, Adjusted R-squared:  0.1535 
+    ## F-statistic: 6.984 on 3 and 96 DF,  p-value: 0.0002671
+
+NOTE: there are only coefficients for three of the levels because the
+coefficients represent the comparison with the fourth level, which is
+often referred to as the reference group. The linear regression model
+automatically uses COPD level 1 (i.e. ‘mild’) as the reference category
+
+If you want to change a variable to a numeric data type, use the command
+as.numeric().
+
+If you want to change a variable to a character data type, use the
+command as.character().
+
+If you want to change a variable to a integer data type, use the command
+as.integer(). and as.factor() for categotrical
+
+we can use the *level()* funtion to check the levels of the category and
+also the reference group
+
+``` r
+levels(COPD_Data$copd) # the first output is the reference group.
+```
+
+    ## [1] "1" "2" "3" "4"
+
+If we want to change the reference group we can use *relevel()* funtion
+
+``` r
+COPD_Data$copd <- relevel(COPD_Data$copd, ref = 3) # 3 to make the 3rd group the reference group.
+
+levels(COPD_Data$copd)
+```
+
+    ## [1] "3" "1" "2" "4"
+
+Now let’s run the linear regression again
+
+``` r
+LM <- lm(COPD_Data$MWT1Best ~ COPD_Data$copd, data = COPD_Data)
+
+summary(LM)
+```
+
+    ## 
+    ## Call:
+    ## lm(formula = COPD_Data$MWT1Best ~ COPD_Data$copd, data = COPD_Data)
+    ## 
+    ## Residuals:
+    ##     Min      1Q  Median      3Q     Max 
+    ## -248.67  -51.18    0.91   64.23  330.33 
+    ## 
+    ## Coefficients:
+    ##                 Estimate Std. Error t value Pr(>|t|)    
+    ## (Intercept)       368.67      18.87  19.541  < 2e-16 ***
+    ## COPD_Data$copd1    89.42      27.82   3.215  0.00178 ** 
+    ## COPD_Data$copd2    38.33      24.18   1.585  0.11620    
+    ## COPD_Data$copd4   -77.79      39.46  -1.971  0.05157 .  
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ## 
+    ## Residual standard error: 98.03 on 96 degrees of freedom
+    ##   (1 observation deleted due to missingness)
+    ## Multiple R-squared:  0.1792, Adjusted R-squared:  0.1535 
+    ## F-statistic: 6.984 on 3 and 96 DF,  p-value: 0.0002671
