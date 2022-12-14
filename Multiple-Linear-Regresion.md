@@ -1,0 +1,381 @@
+Multiple Linear Regression
+================
+
+We’ll load the dataset
+
+``` r
+COPD_Data <- read.csv("C:\\Users\\HP\\Documents\\Datasets\\COPD_student_dataset.csv")
+
+View(COPD_Data)
+```
+
+We’ll predict 6 minute walk distance (MWT1Best, which is an assessment
+to measure the distance a person is capable of walking on a flat, hard
+surface in 6 minutes) using Age, Gender (a categorical variable) and
+PackHistory (a clinincal quantification of cigarette smoking, the
+formula for pack years is based on how much you smoke (cigarettes per
+day) times the number of years you’ve actively smoked).
+
+``` r
+Age <- COPD_Data$AGE
+
+Pack_History <- COPD_Data$PackHistory
+
+Gender <- as.factor(COPD_Data$gender) # adding "as.factor" helps R to recognise the variable as a categorical variable.
+
+MWT1Best <- COPD_Data$MWT1Best
+```
+
+We’ll view the relationship between our variables So as to avoid
+Multicollinearity.
+
+Multicollinearity in regression analysis occurs when two or more
+predictor variables are highly correlated to each other, such that they
+do not provide unique or independent information in the regression
+model.
+
+If the degree of correlation is high enough between variables, it can
+cause problems when fitting and interpreting the regression model.
+
+One of the main goals of regression analysis is to isolate the
+relationship between each predictor variable and the response variable.
+
+In particular, when we run a regression analysis, we interpret each
+regression coefficient as the mean change in the response variable,
+assuming all of the other predictor variables in the model are held
+constant.
+
+This means we assume that we’re able to change the values of a given
+predictor variable without changing the values of the other predictor
+variables.
+
+However, when two or more predictor variables are highly correlated, it
+becomes difficult to change one variable without changing another.
+
+This makes it difficult for the regression model to estimate the
+relationship between each predictor variable and the response variable
+independently because the predictor variables tend to change in unison.
+
+In general, multicollinearity causes two types of problems:
+
+1.  The coefficient estimates of the model (and even the signs of the
+    coefficients) can fluctuate significantly based on which other
+    predictor variables are included in the model.
+2.  The precision of the coefficient estimates are reduced, which makes
+    the p-values unreliable. This makes it difficult to determine which
+    predictor variables are actually statistically significant.
+
+We can roughly estimate which variables are correlated by viewing their
+plots. And based on the nature of the plot, we can either find the
+pearson or the spearman correlation between the variables.
+
+``` r
+pairs(MWT1Best ~ Age+Pack_History+Gender) # will give a scatter-plot of the variables
+
+my_data <- COPD_Data[, c("MWT1Best", "AGE", "PackHistory", "gender")] # to select every rows in those columns.
+
+cor_matrix <- cor(my_data) # will show the value of the correlation between the variables (pearson's is the default)
+
+round(cor_matrix, 2) # to round it up to 2 decimal place
+```
+
+    ##             MWT1Best  AGE PackHistory gender
+    ## MWT1Best           1   NA          NA     NA
+    ## AGE               NA 1.00        0.00   0.16
+    ## PackHistory       NA 0.00        1.00   0.02
+    ## gender            NA 0.16        0.02   1.00
+
+``` r
+library("GGally")
+```
+
+    ## Warning: package 'GGally' was built under R version 4.2.2
+
+    ## Loading required package: ggplot2
+
+    ## Warning: package 'ggplot2' was built under R version 4.2.1
+
+    ## Registered S3 method overwritten by 'GGally':
+    ##   method from   
+    ##   +.gg   ggplot2
+
+![](README_figs/README-unnamed-chunk-4-1.png)<!-- -->
+
+``` r
+ggpairs(my_data) # shows the value of the correlation with the plot 
+```
+
+    ## Warning: Removed 1 rows containing non-finite values (stat_density).
+
+    ## Warning in ggally_statistic(data = data, mapping = mapping, na.rm = na.rm, :
+    ## Removing 1 row that contained a missing value
+
+    ## Warning in ggally_statistic(data = data, mapping = mapping, na.rm = na.rm, :
+    ## Removing 1 row that contained a missing value
+
+    ## Warning in ggally_statistic(data = data, mapping = mapping, na.rm = na.rm, :
+    ## Removing 1 row that contained a missing value
+
+    ## Warning: Removed 1 rows containing missing values (geom_point).
+    ## Removed 1 rows containing missing values (geom_point).
+    ## Removed 1 rows containing missing values (geom_point).
+
+![](README_figs/README-unnamed-chunk-4-2.png)<!-- -->
+
+The outputs show that our predictors have low correlation, so we’ll go
+ahead and fit our model.
+
+``` r
+Model <- lm(MWT1Best ~ Age+Pack_History+Gender)
+
+summary(Model) # to view the output of our model
+```
+
+    ## 
+    ## Call:
+    ## lm(formula = MWT1Best ~ Age + Pack_History + Gender)
+    ## 
+    ## Residuals:
+    ##     Min      1Q  Median      3Q     Max 
+    ## -246.35  -64.70   13.19   67.66  218.59 
+    ## 
+    ## Coefficients:
+    ##              Estimate Std. Error t value Pr(>|t|)    
+    ## (Intercept)  662.9565    91.0126   7.284 8.99e-11 ***
+    ## Age           -3.5075     1.2847  -2.730  0.00753 ** 
+    ## Pack_History  -1.1128     0.4071  -2.733  0.00746 ** 
+    ## Gender1       40.2451    21.0354   1.913  0.05870 .  
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ## 
+    ## Residual standard error: 99.76 on 96 degrees of freedom
+    ##   (1 observation deleted due to missingness)
+    ## Multiple R-squared:  0.1499, Adjusted R-squared:  0.1233 
+    ## F-statistic: 5.642 on 3 and 96 DF,  p-value: 0.001326
+
+Notice that the coeficient for gender in the output is for gender 1,
+which is male (gender 0 is female).
+
+From our model, walking distance = 666.9565 + (-3.508 \* AGe) + (-1.113
+\* Pack_History) + (40.2451 \* 1) (for male, 40.245\*0 for female)
+
+We can also detect multicollinearity by using the variance inflation
+factor (VIF), which measures the correlation and strength of correlation
+between the predictor variables in a regression model.
+
+A general rule of thumb for interpreting VIFs is as follows:
+
+A value of 1 indicates there is no correlation between a given predictor
+variable and any other predictor variables in the model. A value between
+1 and 5 indicates moderate correlation between a given predictor
+variable and other predictor variables in the model, but this is often
+not severe enough to require attention. A value greater than 5 indicates
+potentially severe correlation between a given predictor variable and
+other predictor variables in the model. In this case, the coefficient
+estimates and p-values in the regression output are likely unreliable.
+
+``` r
+# install.packages("car")
+
+library("car")
+```
+
+    ## Warning: package 'car' was built under R version 4.2.2
+
+    ## Loading required package: carData
+
+    ## Warning: package 'carData' was built under R version 4.2.2
+
+``` r
+vif(Model)
+```
+
+    ##          Age Pack_History       Gender 
+    ##     1.024089     1.000390     1.024310
+
+We can see from the model, that the predictor variabls have low
+correlations, which is good for our model.
+
+To check *model assumptions*, you can graphically examine the linear
+regression model using the function plot(). This function allows to
+check for linearity, homoscedasticity, independence, and normality of
+your assumptions. Four plots are generated:
+
+The first is a constant variance plot, which checks for the homogeneity
+of the variance and the linear relation. *If you see no pattern* in this
+graph, then your assumptions are met. One of the key assumptions of
+linear regression is that the residuals of a regression model are
+roughly normally distributed and are homoscedastic at each level of the
+explanatory variable. If these assumptions are violated, then the
+results of our regression model could be misleading or unreliable. As
+long as the residuals appear to be randomly and evenly distributed
+throughout the chart around the value zero, we can assume that
+homoscedasticity is not violated
+
+The second plot is a Q-Q plot, which checks that the residuals follow a
+normal distribution. *The points should fall on a line* if the normality
+assumption is met. Note that for the Q-Q plot, the points toward the end
+may not fall on the line, it’s not an issue, the focus is on the points
+in the middle.
+
+The third plot allows to detect *heterogeneity* ( i.e if the variance
+increase as the values becomes larger or smaller(variance should be
+approximately equal all through)) of the variance.
+
+The fourth plot allows for the detection of points that have a large
+impact on the regression coefficients.
+
+You can view all 4 plots in one output by setting a viewing format of 2
+by 2 plots, using the command: par(mfrow=c(2,2))
+
+If you want to go back to a viewing format of one plot per page after
+that, simply use the command: par(mfrow=c(1,1))
+
+For our regression model, plot(Model) gives the following output:
+
+``` r
+plot(Model)
+```
+
+![](README_figs/README-unnamed-chunk-7-1.png)<!-- -->![](README_figs/README-unnamed-chunk-7-2.png)<!-- -->![](README_figs/README-unnamed-chunk-7-3.png)<!-- -->![](README_figs/README-unnamed-chunk-7-4.png)<!-- -->
+
+#### Example 2
+
+we’ll find the relationship to predict walking distance, diabetes and
+chronic obstructive pulmonary disease.
+
+``` r
+Diabetes <- as.factor(COPD_Data$Diabetes)
+
+COPD <- as.factor(COPD_Data$copd)
+
+MWT1Best <- COPD_Data$MWT1Best
+```
+
+Note that diabetes is a binary variable and COPD is a categorical
+variable.
+
+``` r
+levels(Diabetes) # to view the various categories
+```
+
+    ## [1] "0" "1"
+
+``` r
+levels(COPD)
+```
+
+    ## [1] "1" "2" "3" "4"
+
+For this dataset 0 represent -Ve for diabetes and 1 represent +ve for
+diabetes. And copd levels 1,2,3,4 represent mild, moderate, severe and
+very severe respectively.
+
+We’ll fit our model.
+
+``` r
+Model <- lm(MWT1Best ~ Diabetes + COPD)
+
+summary(Model)
+```
+
+    ## 
+    ## Call:
+    ## lm(formula = MWT1Best ~ Diabetes + COPD)
+    ## 
+    ## Residuals:
+    ##      Min       1Q   Median       3Q      Max 
+    ## -204.185  -48.178   -4.437   53.002  299.478 
+    ## 
+    ## Coefficients:
+    ##             Estimate Std. Error t value Pr(>|t|)    
+    ## (Intercept)   474.19      19.37  24.485  < 2e-16 ***
+    ## Diabetes1     -92.57      22.72  -4.074 9.59e-05 ***
+    ## COPD2         -51.76      23.59  -2.194  0.03064 *  
+    ## COPD3         -74.66      26.05  -2.866  0.00512 ** 
+    ## COPD4        -171.74      37.34  -4.600 1.31e-05 ***
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ## 
+    ## Residual standard error: 90.92 on 95 degrees of freedom
+    ##   (1 observation deleted due to missingness)
+    ## Multiple R-squared:  0.3012, Adjusted R-squared:  0.2718 
+    ## F-statistic: 10.24 on 4 and 95 DF,  p-value: 6.179e-07
+
+To calculate the walking distance of someone with no diabetes(diabetes =
+0) and copd severity of 2 (moderate) from our model:
+
+walking distance = 474.19 + -92.57x0 + -51.76x2
+
+note for this case it’s when diabetes = 0 and when copd = 2 ( others
+will be 0 for this case).
+
+NOTE: there are only coefficients for three of the COPD levels,this is
+because the coefficients represent the comparison with the fourth level,
+which is often referred to as the *reference group*.
+
+The linear regression model automatically uses COPD level 1
+(i.e. ‘mild’) as the reference category. So any result we get is in
+reference to grp1. e.g for the example above, the result is 370, which
+means that walking distance for someone with no diabetes and has a copd
+level of 2 (moderate) compared to the reference group (group1, mild) is
+370
+
+We’ll use vif to see if our predictor variables are correlated (to avoid
+multicollinearity)
+
+``` r
+library("car")
+
+vif(Model)
+```
+
+    ##              GVIF Df GVIF^(1/(2*Df))
+    ## Diabetes 1.036054  1        1.017867
+    ## COPD     1.036054  3        1.005921
+
+The output shows the VIF values for the predictor values to be less than
+5, which is good for our model.
+
+To check for model assumptions.
+
+To check *model assumptions*, you can graphically examine the linear
+regression model using the function plot(). This function allows to
+check for linearity, homoscedasticity, independence, and normality of
+your assumptions. Four plots are generated:
+
+The first is a constant variance plot, which checks for the homogeneity
+of the variance and the linear relation. *If you see no pattern* in this
+graph, then your assumptions are met. One of the key assumptions of
+linear regression is that the residuals of a regression model are
+roughly normally distributed and are homoscedastic at each level of the
+explanatory variable. If these assumptions are violated, then the
+results of our regression model could be misleading or unreliable. As
+long as the residuals appear to be randomly and evenly distributed
+throughout the chart around the value zero, we can assume that
+homoscedasticity is not violated
+
+The second plot is a Q-Q plot, which checks that the residuals follow a
+normal distribution. *The points should fall on a line* if the normality
+assumption is met. Note that for the Q-Q plot, the points toward the end
+may not fall on the line, it’s not an issue, the focus is on the points
+in the middle.
+
+The third plot allows to detect *heterogeneity* ( i.e if the variance
+increase as the values becomes larger or smaller(variance should be
+approximately equal all through)) of the variance.
+
+The fourth plot allows for the detection of points that have a large
+impact on the regression coefficients.
+
+You can view all 4 plots in one output by setting a viewing format of 2
+by 2 plots, using the command: par(mfrow=c(2,2))
+
+If you want to go back to a viewing format of one plot per page after
+that, simply use the command: par(mfrow=c(1,1))
+
+``` r
+plot(Model)
+```
+
+![](README_figs/README-unnamed-chunk-12-1.png)<!-- -->![](README_figs/README-unnamed-chunk-12-2.png)<!-- -->![](README_figs/README-unnamed-chunk-12-3.png)<!-- -->![](README_figs/README-unnamed-chunk-12-4.png)<!-- -->
