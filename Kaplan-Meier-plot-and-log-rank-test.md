@@ -1,0 +1,643 @@
+KM plot and log-rank test
+================
+
+------------------------------------------------------------------------
+
+Survival Analysis is used to estimate the lifespan of a particular
+population under study. It is also called ‘Time to Event Analysis’ as
+the goal is to predict the time when a specific event is going. to
+occur. It is also known as the time to death analysis or failure time
+analysis. As an example, we can consider predicting a time of death of a
+person or predict the lifetime of a machine. For any company
+perspective, we can consider the birth event as the time when an
+employee or customer joins the company and the respective death event as
+the time when an employee or customer leaves that company or
+organization.
+
+Data: Survival datasets are Time to event data that consists of distinct
+start and end time. In real-time datasets, all the samples do not start
+at time zero. A sample can enter at any point of time for study. So
+subjects are brought to the common starting point at time t equals zero
+(t=0). When the data for survival analysis is too large, we need to
+divide the data into groups for easy analysis.
+
+Survival analysis is of major interest for clinical data. With the help
+of this, we can identify the time to events like death or recurrence of
+some diseases. It is useful for the comparison of two patients or groups
+of patients. The data can be censored. The term “censoring” means
+incomplete data. Sometimes a subject withdraws from the study and the
+event of interest has not been experienced during the whole duration of
+the study. In this situation, when the event is not experienced until
+the last study point, that is censored.
+
+There are two methods mainly for survival analysis:
+
+Kaplan-Meier Method and Log Rank Test: This method can be implemented
+using the function survfit() and plot() is used to plot the survival
+object. The function ggsurvplot() can also be used to plot the object of
+survfit. Cox Proportional Hazards Models coxph(): This function is used
+to get the survival object and ggforest() is used to plot the graph of
+survival object. This is a forest plot.
+
+Install and load the library packages we’ll be using. The necessary
+packages for survival analysis in R are “survival” and “survminer”. For
+these packages, the version of R must be greater than or at least 3.4.
+
+Survival: For computing survival analysis Survminer: For summarizing and
+visualizing the results of survival analysis.
+
+``` r
+# install.packages("survival")
+
+# install.packages("survminer")
+
+# install.packages("ggplot")
+
+library("survival")
+```
+
+    ## Warning: package 'survival' was built under R version 4.2.2
+
+``` r
+library("survminer")
+```
+
+    ## Warning: package 'survminer' was built under R version 4.2.2
+
+    ## Loading required package: ggplot2
+
+    ## Warning: package 'ggplot2' was built under R version 4.2.1
+
+    ## Loading required package: ggpubr
+
+    ## Warning: package 'ggpubr' was built under R version 4.2.2
+
+    ## 
+    ## Attaching package: 'survminer'
+
+    ## The following object is masked from 'package:survival':
+    ## 
+    ##     myeloma
+
+``` r
+library("ggplot2")
+```
+
+load the dataset
+
+``` r
+Heart_failure_dataset <- read.csv("C:\\Users\\HP\\Documents\\Datasets\\Heart Failure Dataset.csv")
+
+head(Heart_failure_dataset)
+```
+
+    ##   id death los age gender cancer cabg crt defib dementia diabetes hypertension
+    ## 1  1     0   2  90      2      0    0   0     0        0        0            0
+    ## 2  2     0  10  74      1      0    0   0     0        0        0            1
+    ## 3  3     0   3  83      2      0    0   0     0        0        0            1
+    ## 4  4     0   1  79      1      0    0   0     0        0        1            1
+    ## 5  5     0  17  94      2      0    0   0     0        0        1            1
+    ## 6  6     0  47  89      1      0    0   0     0        0        0            0
+    ##   ihd mental_health arrhythmias copd obesity pvd renal_disease valvular_disease
+    ## 1   0             0           1    0       0   0             0                1
+    ## 2   1             0           0    0       0   0             1                1
+    ## 3   0             0           1    0       0   0             0                0
+    ## 4   1             0           0    1       0   0             0                0
+    ## 5   0             0           0    0       0   0             0                0
+    ## 6   0             0           0    0       0   1             0                1
+    ##   metastatic_cancer pacemaker pneumonia prior_appts_attended prior_dnas pci
+    ## 1                 0         0         0                    4          0   0
+    ## 2                 0         0         1                    9          1   0
+    ## 3                 0         0         0                    1          0   0
+    ## 4                 0         1         0                    9          2   1
+    ## 5                 0         0         0                    3          0   0
+    ## 6                 0         0         1                    3          0   0
+    ##   stroke senile quintile ethnicgroup fu_time
+    ## 1      0      0        2          NA     416
+    ## 2      0      0        4           1     648
+    ## 3      0      0        3           1     466
+    ## 4      1      0        5           1     441
+    ## 5      0      0        2           1     371
+    ## 6      0      0        3          NA      47
+
+The variables we’ll be using
+
+``` r
+COPD <- as.factor(Heart_failure_dataset$copd) # to turn the variable to a categorical variable (factor)
+
+Gender <- as.factor(Heart_failure_dataset$gender)
+
+Cancer <- as.factor(Heart_failure_dataset$cancer)
+
+Ethnic_Group <- as.factor(Heart_failure_dataset$ethnicgroup)
+
+Follow_up_time <- Heart_failure_dataset$fu_time # a continuous variable (numeric)
+
+Death <- Heart_failure_dataset$death # binary variable (numeric)
+```
+
+``` r
+summary(Follow_up_time)
+```
+
+    ##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+    ##     0.0   117.8   475.0   466.0   743.2  1107.0
+
+``` r
+KM_fit <- survfit(Surv(Follow_up_time, Death) ~ 1)
+
+plot(KM_fit)
+```
+
+![](Kaplan-Meier-plot-and-log-rank-test_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
+
+By default, there are no axis labels or titles, but let’s not worry
+about that for now. Let’s go through the different parts of the code. in
+this case there aren’t any predictors, so the model just has the
+intercept, denoted by “1”. The two arguments used by “Surv” are the
+follow-up time for each patient and whether they died. In our data,
+death=1 for people who had died by the end of the follow-up period, and
+death=0 for those still alive at that time. Technically, those people
+still alive are censored, because we don’t know when they’ll die (of
+course everyone does at some point). The survfit() function produces the
+Kaplan-Meier estimates of the probability of survival over time that are
+used by “plot” to produce the Kaplan-Meier curve above. These estimates
+can be seen by typing:
+
+``` r
+summary(KM_fit, times = c(1:7, 30, 60, 90*(1:10)))
+```
+
+    ## Call: survfit(formula = Surv(Follow_up_time, Death) ~ 1)
+    ## 
+    ##  time n.risk n.event survival std.err lower 95% CI upper 95% CI
+    ##     1    992      12    0.988 0.00346        0.981        0.995
+    ##     2    973       7    0.981 0.00435        0.972        0.989
+    ##     3    963       5    0.976 0.00489        0.966        0.985
+    ##     4    954       6    0.970 0.00546        0.959        0.980
+    ##     5    945       5    0.964 0.00590        0.953        0.976
+    ##     6    938       1    0.963 0.00598        0.952        0.975
+    ##     7    933       1    0.962 0.00606        0.951        0.974
+    ##    30    865      39    0.921 0.00865        0.905        0.939
+    ##    60    809      28    0.891 0.01010        0.871        0.911
+    ##    90    770      24    0.864 0.01117        0.843        0.887
+    ##   180    698      43    0.815 0.01282        0.790        0.841
+    ##   270    653      24    0.787 0.01363        0.760        0.814
+    ##   360    619      21    0.761 0.01428        0.733        0.789
+    ##   450    525      44    0.705 0.01554        0.675        0.736
+    ##   540    429      47    0.639 0.01681        0.607        0.673
+    ##   630    362      32    0.589 0.01765        0.556        0.625
+    ##   720    266      43    0.514 0.01876        0.479        0.552
+    ##   810    190      31    0.448 0.01979        0.411        0.488
+    ##   900    126      26    0.378 0.02098        0.339        0.421
+
+The “times” argument gives us control over what time periods we want to
+see. The above code asks for output every day for the first week, then
+at 30, 60 and 90 days, and then every 90 days thereafter. Whereas all
+but about 1% make it past the first day, at 900 days after a first
+emergency admission for heart failure, the probability of surviving is
+just 38%.
+
+Note: n.risk refers to the total number of people being observed n.event
+refers to the number of people the event has happened to. *proportion
+that survive* = (n.risk - n.event)/n.risk *probability of
+survival*(survival) = proportion that survive \* last time’s survival
+rate…. note for the first time, it’s 1(last time’s survival rate)
+
+Now we will use Surv() function and create survival objects with the
+help of survival time and censored data inputs (Deaths).
+
+``` r
+Survival_Object <- Surv(Follow_up_time, Death)
+
+Survival_Object[1:50] # to show the first 50 rows
+```
+
+    ##  [1]  416+  648+  466+  441+  371+   47+  656+   12+  530+  551+ 1059+   90+
+    ## [13]  538+  289+  334+    5    79+  363   195    27+  455+  498+  586+ 1085 
+    ## [25]  219+  666+  195   488   590+   58+  827+  939     4    50   156  1028 
+    ## [37] 1019+    0+  575+ 1059+  632   830+  689+  380     3  1040   357   982+
+    ## [49]  685   115
+
+Here the “+” sign appended to some data indicates censored data.
+
+Now to fit Kaplan-Meier curves to this survival object we use function
+survfit(). We can stratify the curve based on the presence or absence of
+Chronic obstructive pulmonary disease (COPD):
+
+``` r
+COPD_Survival_Rate <- survfit(Survival_Object ~ COPD)
+
+summary(COPD_Survival_Rate, times = c(1:7, 30, 60, 90*(1:10))) #The “times” argument gives us control over what time periods we want to see. The above code asks for output every day for the first week, then at 30, 60 and 90 days, and then every 90 days thereafter.
+```
+
+    ## Call: survfit(formula = Survival_Object ~ COPD)
+    ## 
+    ##                 COPD=0 
+    ##  time n.risk n.event survival std.err lower 95% CI upper 95% CI
+    ##     1    750      11    0.985 0.00436        0.977        0.994
+    ##     2    733       5    0.979 0.00527        0.968        0.989
+    ##     3    726       4    0.973 0.00589        0.962        0.985
+    ##     4    718       4    0.968 0.00645        0.955        0.981
+    ##     5    712       4    0.962 0.00696        0.949        0.976
+    ##     6    706       1    0.961 0.00709        0.947        0.975
+    ##     7    703       1    0.960 0.00721        0.946        0.974
+    ##    30    650      30    0.918 0.01017        0.898        0.938
+    ##    60    607      19    0.890 0.01166        0.868        0.913
+    ##    90    575      19    0.862 0.01295        0.837        0.888
+    ##   180    525      29    0.818 0.01469        0.789        0.847
+    ##   270    489      20    0.786 0.01574        0.756        0.817
+    ##   360    465      14    0.763 0.01642        0.732        0.796
+    ##   450    392      33    0.707 0.01791        0.672        0.743
+    ##   540    330      32    0.647 0.01927        0.610        0.686
+    ##   630    276      28    0.590 0.02038        0.551        0.631
+    ##   720    201      32    0.516 0.02159        0.476        0.561
+    ##   810    143      21    0.457 0.02272        0.414        0.503
+    ##   900     99      20    0.385 0.02420        0.340        0.435
+    ## 
+    ##                 COPD=1 
+    ##  time n.risk n.event survival std.err lower 95% CI upper 95% CI
+    ##     1    242       1    0.996 0.00412        0.988        1.000
+    ##     2    240       2    0.988 0.00713        0.974        1.000
+    ##     3    237       1    0.983 0.00823        0.967        1.000
+    ##     4    236       2    0.975 0.01005        0.956        0.995
+    ##     5    233       1    0.971 0.01084        0.950        0.992
+    ##     6    232       0    0.971 0.01084        0.950        0.992
+    ##     7    230       0    0.971 0.01084        0.950        0.992
+    ##    30    215       9    0.933 0.01630        0.901        0.965
+    ##    60    202       9    0.893 0.02022        0.854        0.934
+    ##    90    195       5    0.871 0.02202        0.829        0.915
+    ##   180    173      14    0.807 0.02616        0.758        0.860
+    ##   270    164       4    0.789 0.02717        0.737        0.844
+    ##   360    154       7    0.755 0.02888        0.700        0.813
+    ##   450    133      11    0.699 0.03121        0.641        0.763
+    ##   540     99      15    0.615 0.03426        0.551        0.686
+    ##   630     86       4    0.589 0.03521        0.524        0.662
+    ##   720     65      11    0.508 0.03787        0.439        0.588
+    ##   810     47      10    0.423 0.04006        0.351        0.509
+    ##   900     27       6    0.358 0.04199        0.284        0.450
+
+To view the survival curve, we can use plot() and pass survFit1 object
+to it. legend() function is used to add a legend to the plot.
+
+``` r
+plot(COPD_Survival_Rate, main = "K-M plot for COPD Patients", xlab="Survival time", ylab="Survival probability", col=c("red", "blue"))
+legend('topright', legend=c("COPD = 0","COPD = 1"), col=c("red","blue"), lwd=1)
+```
+
+![](Kaplan-Meier-plot-and-log-rank-test_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
+
+To compare survival by COPD, we can run a logrank test. There are many
+ways to do this because of different versions for different scenarios,
+e.g. particular types of censored data, but we’ll just give the standard
+one: We can use the survdiff function to see if the difference in
+survival time between the two groups of COPD patients is statistically
+significant.
+
+``` r
+survdiff(Surv(Follow_up_time, Death) ~ COPD, rho = 0)
+```
+
+    ## Call:
+    ## survdiff(formula = Surv(Follow_up_time, Death) ~ COPD, rho = 0)
+    ## 
+    ##          N Observed Expected (O-E)^2/E (O-E)^2/V
+    ## COPD=0 758      365      373     0.181     0.755
+    ## COPD=1 242      127      119     0.570     0.755
+    ## 
+    ##  Chisq= 0.8  on 1 degrees of freedom, p= 0.4
+
+With rho = 0, which is the default so we don’t need to write this bit,
+it yields the log-rank or Mantel-Haenszel test.
+
+The log-rank test compares the survival time by gender. It’s the most
+popular method of comparing the survival of patient groups that takes
+the whole follow-up period into account. Its big advantage is that it
+you don’t need to know anything about the shape of the survival curve or
+the distribution of survival times. It’s based on a comparison of the
+observed numbers of deaths and the numbers of deaths expected if in fact
+there were no difference in the probability of death between the groups
+(genders in this case) and uses a chi-squared test.
+
+The test is based on a comparison of the observed numbers of deaths and
+the numbers of deaths expected if in fact there were no difference in
+the probability of death between the groups (COPD in this case) and uses
+a chi-squared test.
+
+The resulting p-value that you should have got is high, at 0.4. There’s
+therefore no good evidence of a difference between the genders in their
+survival times.
+
+------------------------------------------------------------------------
+
+Let’s see the survival rate between both Genders.
+
+``` r
+Gender_Survival_Rate <- survfit(Survival_Object ~ Gender)
+
+summary(Gender_Survival_Rate, times = c(1:7, 30, 60, 90*(1:10), 1000))
+```
+
+    ## Call: survfit(formula = Survival_Object ~ Gender)
+    ## 
+    ##                 Gender=1 
+    ##  time n.risk n.event survival std.err lower 95% CI upper 95% CI
+    ##     1    542       7    0.987 0.00482        0.978        0.997
+    ##     2    528       4    0.980 0.00606        0.968        0.992
+    ##     3    522       3    0.974 0.00685        0.961        0.988
+    ##     4    516       4    0.966 0.00776        0.951        0.982
+    ##     5    509       3    0.961 0.00839        0.945        0.977
+    ##     6    504       0    0.961 0.00839        0.945        0.977
+    ##     7    502       1    0.959 0.00859        0.942        0.976
+    ##    30    464      19    0.922 0.01174        0.899        0.945
+    ##    60    430      17    0.887 0.01399        0.860        0.915
+    ##    90    409      12    0.862 0.01534        0.833        0.893
+    ##   180    371      28    0.802 0.01796        0.768        0.838
+    ##   270    352      10    0.781 0.01876        0.745        0.818
+    ##   360    333      11    0.756 0.01959        0.718        0.795
+    ##   450    286      24    0.700 0.02121        0.659        0.743
+    ##   540    236      27    0.631 0.02289        0.588        0.678
+    ##   630    197      18    0.581 0.02391        0.536        0.630
+    ##   720    146      16    0.530 0.02504        0.483        0.581
+    ##   810    109      16    0.467 0.02654        0.418        0.522
+    ##   900     75      16    0.391 0.02832        0.339        0.450
+    ##  1000     39      16    0.294 0.03011        0.241        0.359
+    ## 
+    ##                 Gender=2 
+    ##  time n.risk n.event survival std.err lower 95% CI upper 95% CI
+    ##     1    450       5    0.989 0.00493        0.979        0.999
+    ##     2    445       3    0.982 0.00622        0.970        0.995
+    ##     3    441       2    0.978 0.00694        0.964        0.991
+    ##     4    438       2    0.973 0.00760        0.959        0.988
+    ##     5    436       2    0.969 0.00819        0.953        0.985
+    ##     6    434       1    0.967 0.00847        0.950        0.983
+    ##     7    431       0    0.967 0.00847        0.950        0.983
+    ##    30    401      20    0.921 0.01281        0.896        0.947
+    ##    60    379      11    0.895 0.01460        0.867        0.925
+    ##    90    361      12    0.867 0.01629        0.836        0.899
+    ##   180    327      15    0.830 0.01821        0.795        0.866
+    ##   270    301      14    0.794 0.01981        0.756        0.833
+    ##   360    286      10    0.767 0.02086        0.727        0.809
+    ##   450    239      20    0.711 0.02283        0.667        0.757
+    ##   540    193      20    0.648 0.02474        0.601        0.698
+    ##   630    165      14    0.599 0.02615        0.549        0.652
+    ##   720    120      27    0.497 0.02814        0.444        0.555
+    ##   810     81      15    0.425 0.02960        0.371        0.487
+    ##   900     51      10    0.363 0.03121        0.307        0.430
+    ##  1000     28       7    0.304 0.03332        0.246        0.377
+
+``` r
+plot(Gender_Survival_Rate, main = "K-M plot for Gender", xlab="Survival time", ylab="Survival probability", col=c("red", "blue"))
+legend('topright', legend=c("Gender = 1","Gender = 2"), col=c("red","blue"), lwd=1)
+```
+
+![](Kaplan-Meier-plot-and-log-rank-test_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
+
+To compare survival by COPD, we can run a logrank test. There are many
+ways to do this because of different versions for different scenarios,
+e.g. particular types of censored data, but we’ll just give the standard
+one:
+
+``` r
+survdiff(Survival_Object ~ Gender, rho = 0)
+```
+
+    ## Call:
+    ## survdiff(formula = Survival_Object ~ Gender, rho = 0)
+    ## 
+    ##            N Observed Expected (O-E)^2/E (O-E)^2/V
+    ## Gender=1 548      268      271    0.0365     0.082
+    ## Gender=2 452      224      221    0.0448     0.082
+    ## 
+    ##  Chisq= 0.1  on 1 degrees of freedom, p= 0.8
+
+The resulting p-value that you should have got is high, at 0.8. There’s
+therefore no good evidence of a difference between the genders in their
+survival times.
+
+------------------------------------------------------------------------
+
+Let’s see the survival rate between patient who have cancer and patients
+who does’nt have cancer.
+
+``` r
+Cancer_Survival_Rate <- survfit(Survival_Object ~ Cancer)
+
+summary(Cancer_Survival_Rate, times = c(1:7, 30, 60, 90*(1:10), 1000))
+```
+
+    ## Call: survfit(formula = Survival_Object ~ Cancer)
+    ## 
+    ##                 Cancer=0 
+    ##  time n.risk n.event survival std.err lower 95% CI upper 95% CI
+    ##     1    941      11    0.988 0.00349        0.982        0.995
+    ##     2    924       6    0.982 0.00434        0.973        0.990
+    ##     3    916       3    0.979 0.00471        0.970        0.988
+    ##     4    909       6    0.972 0.00536        0.962        0.983
+    ##     5    900       5    0.967 0.00585        0.955        0.978
+    ##     6    894       1    0.966 0.00594        0.954        0.978
+    ##     7    889       1    0.965 0.00604        0.953        0.977
+    ##    30    828      33    0.928 0.00852        0.912        0.945
+    ##    60    775      26    0.898 0.01005        0.879        0.918
+    ##    90    739      22    0.873 0.01115        0.851        0.895
+    ##   180    673      39    0.826 0.01285        0.801        0.851
+    ##   270    631      22    0.798 0.01369        0.772        0.826
+    ##   360    599      19    0.774 0.01437        0.746        0.803
+    ##   450    508      41    0.719 0.01572        0.689        0.750
+    ##   540    417      45    0.653 0.01710        0.620        0.687
+    ##   630    351      32    0.600 0.01806        0.566        0.637
+    ##   720    256      43    0.521 0.01930        0.485        0.561
+    ##   810    181      31    0.451 0.02044        0.413        0.493
+    ##   900    121      23    0.386 0.02160        0.346        0.430
+    ##  1000     65      23    0.300 0.02323        0.257        0.349
+    ## 
+    ##                 Cancer=1 
+    ##  time n.risk n.event survival std.err lower 95% CI upper 95% CI
+    ##     1     51       1    0.980  0.0194        0.943        1.000
+    ##     2     49       1    0.960  0.0275        0.908        1.000
+    ##     3     47       2    0.920  0.0386        0.847        0.998
+    ##     4     45       0    0.920  0.0386        0.847        0.998
+    ##     5     45       0    0.920  0.0386        0.847        0.998
+    ##     6     44       0    0.920  0.0386        0.847        0.998
+    ##     7     44       0    0.920  0.0386        0.847        0.998
+    ##    30     37       6    0.793  0.0584        0.686        0.916
+    ##    60     34       2    0.750  0.0628        0.636        0.883
+    ##    90     31       2    0.705  0.0665        0.586        0.848
+    ##   180     25       4    0.611  0.0723        0.485        0.771
+    ##   270     22       2    0.562  0.0744        0.434        0.729
+    ##   360     20       2    0.511  0.0759        0.382        0.684
+    ##   450     17       3    0.435  0.0763        0.308        0.613
+    ##   540     12       2    0.374  0.0767        0.251        0.560
+    ##   630     11       0    0.374  0.0767        0.251        0.560
+    ##   720     10       0    0.374  0.0767        0.251        0.560
+    ##   810      9       0    0.374  0.0767        0.251        0.560
+    ##   900      5       3    0.234  0.0801        0.120        0.458
+    ##  1000      2       0    0.234  0.0801        0.120        0.458
+
+``` r
+plot(Cancer_Survival_Rate, main = "K-M plot for Cancer Patients", xlab="Survival time", ylab="Survival probability", col=c("red", "blue"))
+legend('topright', legend=c("Cancer = 0","Cancer = 1"), col=c("red","blue"), lwd=1)
+```
+
+![](Kaplan-Meier-plot-and-log-rank-test_files/figure-gfm/unnamed-chunk-13-1.png)<!-- -->
+
+``` r
+survdiff(Survival_Object ~ Cancer, rho= 0)
+```
+
+    ## Call:
+    ## survdiff(formula = Survival_Object ~ Cancer, rho = 0)
+    ## 
+    ##            N Observed Expected (O-E)^2/E (O-E)^2/V
+    ## Cancer=0 949      461    473.8     0.344      9.32
+    ## Cancer=1  51       31     18.2     8.939      9.32
+    ## 
+    ##  Chisq= 9.3  on 1 degrees of freedom, p= 0.002
+
+Here, the P-value is less than 0.05 (0.002), which means that the
+difference in survival rate between those who have cancer and those who
+doesn’t have cancer is statistically significant.
+
+------------------------------------------------------------------------
+
+Let’s find the survival rate for the ethnic groups.
+
+Ethnic group has the following categories in this extract:
+
+1=white
+
+2=black
+
+3=Indian subcontinent
+
+9=other
+
+``` r
+levels(Ethnic_Group) # to view the different categories of this variable
+```
+
+    ## [1] "1" "2" "3" "9"
+
+``` r
+Ethnic_Group_Survival_Rate <- survfit(Survival_Object ~ Ethnic_Group)
+
+summary(Ethnic_Group_Survival_Rate, times = c(1:7, 30, 60, 90*(1:10)))
+```
+
+    ## Call: survfit(formula = Survival_Object ~ Ethnic_Group)
+    ## 
+    ## 43 observations deleted due to missingness 
+    ##                 Ethnic_Group=1 
+    ##  time n.risk n.event survival std.err lower 95% CI upper 95% CI
+    ##     1    882      10    0.989 0.00355        0.982        0.996
+    ##     2    865       7    0.981 0.00463        0.972        0.990
+    ##     3    855       5    0.975 0.00527        0.965        0.985
+    ##     4    847       5    0.969 0.00583        0.958        0.981
+    ##     5    840       5    0.963 0.00634        0.951        0.976
+    ##     6    833       0    0.963 0.00634        0.951        0.976
+    ##     7    829       1    0.962 0.00644        0.950        0.975
+    ##    30    764      38    0.917 0.00940        0.899        0.936
+    ##    60    714      24    0.888 0.01086        0.867        0.909
+    ##    90    679      21    0.862 0.01196        0.838        0.885
+    ##   180    614      41    0.808 0.01381        0.782        0.836
+    ##   270    572      23    0.778 0.01470        0.749        0.807
+    ##   360    541      19    0.751 0.01538        0.722        0.782
+    ##   450    466      38    0.697 0.01662        0.665        0.730
+    ##   540    379      46    0.625 0.01797        0.591        0.661
+    ##   630    322      28    0.577 0.01874        0.542        0.615
+    ##   720    235      40    0.500 0.01982        0.463        0.541
+    ##   810    167      25    0.441 0.02074        0.402        0.484
+    ##   900    111      25    0.367 0.02197        0.326        0.413
+    ## 
+    ##                 Ethnic_Group=2 
+    ##  time n.risk n.event survival std.err lower 95% CI upper 95% CI
+    ##     1     17       0    1.000  0.0000        1.000        1.000
+    ##     2     17       0    1.000  0.0000        1.000        1.000
+    ##     3     17       0    1.000  0.0000        1.000        1.000
+    ##     4     17       0    1.000  0.0000        1.000        1.000
+    ##     5     17       0    1.000  0.0000        1.000        1.000
+    ##     6     17       0    1.000  0.0000        1.000        1.000
+    ##     7     17       0    1.000  0.0000        1.000        1.000
+    ##    30     17       0    1.000  0.0000        1.000        1.000
+    ##    60     17       0    1.000  0.0000        1.000        1.000
+    ##    90     15       2    0.882  0.0781        0.742        1.000
+    ##   180     14       1    0.824  0.0925        0.661        1.000
+    ##   270     13       1    0.765  0.1029        0.587        0.995
+    ##   360     12       1    0.706  0.1105        0.519        0.959
+    ##   450     10       1    0.647  0.1159        0.455        0.919
+    ##   540      9       0    0.647  0.1159        0.455        0.919
+    ##   630      8       0    0.647  0.1159        0.455        0.919
+    ##   720      7       0    0.647  0.1159        0.455        0.919
+    ##   810      6       1    0.539  0.1379        0.327        0.890
+    ##   900      4       0    0.539  0.1379        0.327        0.890
+    ## 
+    ##                 Ethnic_Group=3 
+    ##  time n.risk n.event survival std.err lower 95% CI upper 95% CI
+    ##     1     34       0    1.000  0.0000        1.000        1.000
+    ##     2     34       0    1.000  0.0000        1.000        1.000
+    ##     3     34       0    1.000  0.0000        1.000        1.000
+    ##     4     34       0    1.000  0.0000        1.000        1.000
+    ##     5     33       0    1.000  0.0000        1.000        1.000
+    ##     6     33       0    1.000  0.0000        1.000        1.000
+    ##     7     33       0    1.000  0.0000        1.000        1.000
+    ##    30     33       0    1.000  0.0000        1.000        1.000
+    ##    60     31       1    0.970  0.0298        0.913        1.000
+    ##    90     29       1    0.938  0.0422        0.859        1.000
+    ##   180     26       0    0.938  0.0422        0.859        1.000
+    ##   270     25       0    0.938  0.0422        0.859        1.000
+    ##   360     24       1    0.901  0.0547        0.800        1.000
+    ##   450     20       1    0.860  0.0658        0.740        0.999
+    ##   540     15       0    0.860  0.0658        0.740        0.999
+    ##   630     13       0    0.860  0.0658        0.740        0.999
+    ##   720     10       0    0.860  0.0658        0.740        0.999
+    ##   810      8       1    0.764  0.1074        0.580        1.000
+    ##   900      4       0    0.764  0.1074        0.580        1.000
+    ## 
+    ##                 Ethnic_Group=9 
+    ##  time n.risk n.event survival std.err lower 95% CI upper 95% CI
+    ##     1     17       1    0.941  0.0571        0.836        1.000
+    ##     2     16       0    0.941  0.0571        0.836        1.000
+    ##     3     16       0    0.941  0.0571        0.836        1.000
+    ##     4     16       1    0.882  0.0781        0.742        1.000
+    ##     5     15       0    0.882  0.0781        0.742        1.000
+    ##     6     15       0    0.882  0.0781        0.742        1.000
+    ##     7     15       0    0.882  0.0781        0.742        1.000
+    ##    30     14       0    0.882  0.0781        0.742        1.000
+    ##    60     14       0    0.882  0.0781        0.742        1.000
+    ##    90     14       0    0.882  0.0781        0.742        1.000
+    ##   180     14       0    0.882  0.0781        0.742        1.000
+    ##   270     13       0    0.882  0.0781        0.742        1.000
+    ##   360     13       0    0.882  0.0781        0.742        1.000
+    ##   450      7       3    0.672  0.1220        0.471        0.959
+    ##   540      6       1    0.576  0.1372        0.361        0.919
+    ##   630      3       1    0.461  0.1505        0.243        0.874
+    ##   720      3       0    0.461  0.1505        0.243        0.874
+    ##   810      2       1    0.307  0.1606        0.110        0.856
+    ##   900      2       0    0.307  0.1606        0.110        0.856
+
+``` r
+plot(Ethnic_Group_Survival_Rate, main = "K-M plot for COPD Patients", xlab="Survival time", ylab="Survival probability", col=c("red", "blue", "Green", "black"))
+legend('topright', legend=c("Ethnic_Group = 1","Ethnic_Group = 2", "Ethnic_Group = 3", "Ethnic_Group = 9"), col=c("red","blue", "Green", "black"), lwd=1)
+```
+
+![](Kaplan-Meier-plot-and-log-rank-test_files/figure-gfm/unnamed-chunk-16-1.png)<!-- -->
+
+``` r
+survdiff(Survival_Object ~ Ethnic_Group, rho = 0)
+```
+
+    ## Call:
+    ## survdiff(formula = Survival_Object ~ Ethnic_Group, rho = 0)
+    ## 
+    ## n=957, 43 observations deleted due to missingness.
+    ## 
+    ##                  N Observed Expected (O-E)^2/E (O-E)^2/V
+    ## Ethnic_Group=1 889      447   434.18    0.3786    4.8567
+    ## Ethnic_Group=2  17       10    10.37    0.0131    0.0135
+    ## Ethnic_Group=3  34        6    19.22    9.0972    9.5209
+    ## Ethnic_Group=9  17        8     7.23    0.0826    0.0841
+    ## 
+    ##  Chisq= 9.6  on 3 degrees of freedom, p= 0.02
+
+A P-value of 0.02 shows there’s a statistically significant difference
+in the survival rates between the ethnic groups.
