@@ -100,7 +100,8 @@ las = 2 #make x-axis labels perpendicular
 )
 ```
 
-![](Two-Way-ANOVA-in-R_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
+![](Two-Way-ANOVA-in-R_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->![image](https://user-images.githubusercontent.com/110697869/213985883-7297ee86-3ceb-4004-868f-4029709f91d6.png)
+
 
 ### *Fitting the Two-Way ANOVA Model*
 
@@ -156,7 +157,8 @@ resid <- model$residuals
 hist(resid, main = "Histogram of Residuals", xlab = "Residuals", col = "steelblue")
 ```
 
-![](Two-Way-ANOVA-in-R_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
+![](Two-Way-ANOVA-in-R_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->![image](https://user-images.githubusercontent.com/110697869/213985943-3ea2ae65-c0d9-4a9e-850f-102971c4d08f.png)
+
 The histogram looks right skewed, which suggest that normaliy assumption
 may be violated.
 
@@ -281,7 +283,10 @@ par(mar=c(4.1, 13, 4.1, 2.1))
 plot(TukeyHSD(model, conf.level=.95), las = 2)
 ```
 
-![](Two-Way-ANOVA-in-R_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->![](Two-Way-ANOVA-in-R_files/figure-gfm/unnamed-chunk-9-2.png)<!-- -->![](Two-Way-ANOVA-in-R_files/figure-gfm/unnamed-chunk-9-3.png)<!-- -->
+![](Two-Way-ANOVA-in-R_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->![image](https://user-images.githubusercontent.com/110697869/213985990-f4fe08e6-ef45-49f0-816a-3bdec40655b1.png)
+![](Two-Way-ANOVA-in-R_files/figure-gfm/unnamed-chunk-9-2.png)<!-- -->![image](https://user-images.githubusercontent.com/110697869/213986089-5b55eaf5-62ae-4ff6-a0f3-8edc87e16361.png)
+![](Two-Way-ANOVA-in-R_files/figure-gfm/unnamed-chunk-9-3.png)<!-- -->![image](https://user-images.githubusercontent.com/110697869/213986141-302273bc-aaa6-4139-8779-3749a3d1015b.png)
+
 If your confidence interval for a correlation or regression includes
 zero, that means that if you run your experiment again there is a good
 chance of finding no correlation in your data
