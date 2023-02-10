@@ -1,0 +1,403 @@
+ANCOVA in R
+================
+
+An ANCOVA (“Analysis of Covariance”) is also used to determine whether
+or not there is a statistically significant difference between the means
+of three or more independent groups. Unlike an ANOVA, however, an ANCOVA
+includes one or more covariates, which can help us better understand how
+a factor impacts a response variable after accounting for some
+covariate(s).
+
+Example: We split up a class of 90 students into three groups of 30.
+Each group uses a different studying technique for one month to prepare
+for an exam. At the end of the month, all of the students take the same
+exam.
+
+We want to know whether or not the studying technique has an impact on
+exam scores, but we want to account for the grade that the student
+already has in the class so we use their current grade as a covariate
+and conduct an ANCOVA to determine if there is a statistically
+significant difference between the mean scores of the three groups.
+
+This allows us to test whether or not studying technique has an impact
+on exam scores after the influence of the covariate has been removed.
+Thus, if we find that there is a statistically significant difference in
+exam scores between the three studying techniques, we can be sure that
+this difference exists even after accounting for the students current
+grade in the class (i.e. if they’re already doing well or not in the
+class).
+
+### *Assumptions*
+
+ANCOVA makes several assumptions about the data, such as:
+
+-Linearity between the covariate and the outcome variable at each level
+of the grouping variable. This can be checked by creating a grouped
+scatter plot of the covariate and the outcome variable. Homogeneity of
+regression slopes. The slopes of the regression lines, formed by the
+covariate and the outcome variable, should be the same for each group.
+This assumption evaluates that there is no interaction between the
+outcome and the covariate. The plotted regression lines by groups should
+be parallel.  
+
+The outcome variable should be approximately normally distributed. This
+can be checked using the Shapiro-Wilk test of normality on the model
+residuals.
+
+Homoscedasticity or homogeneity of residuals variance for all groups.
+The residuals are assumed to have a constant variance (homoscedasticity)
+No significant outliers in the groups.
+
+We’ll use the anxiety dataset available in the datarium package.
+
+Researchers investigated the effect of exercises in reducing the level
+of anxiety. Therefore, they conducted an experiment, where they measured
+the anxiety score of three groups of individuals practicing physical
+exercises at different levels (grp1: low, grp2: moderate and grp3:
+high).
+
+The anxiety score was measured pre- and 6-months post-exercise training
+programs. It is expected that any reduction in the anxiety by the
+exercises programs would also depend on the participant’s basal level of
+anxiety score, so we account for it.
+
+In this analysis we use the pretest anxiety score as the covariate and
+are interested in possible differences between group with respect to the
+post-test anxiety scores.
+
+### *Prerequisites*
+
+Make sure you have installed the following R packages:
+
+tidyverse for data manipulation and visualization ggpubr for creating
+easily publication ready plots rstatix for easy pipe-friendly
+statistical analyses broom for printing a nice summary of statistical
+tests as data frames datarium: contains required data sets for this
+chapter Start by loading the following required packages:
+
+``` r
+library(tidyverse)
+```
+
+    ## ── Attaching packages ─────────────────────────────────────── tidyverse 1.3.2 ──
+    ## ✔ ggplot2 3.4.0     ✔ purrr   0.3.4
+    ## ✔ tibble  3.1.8     ✔ dplyr   1.0.9
+    ## ✔ tidyr   1.2.0     ✔ stringr 1.4.0
+    ## ✔ readr   2.1.2     ✔ forcats 0.5.1
+    ## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+    ## ✖ dplyr::filter() masks stats::filter()
+    ## ✖ dplyr::lag()    masks stats::lag()
+
+``` r
+library(stringr)
+
+library(ggpubr)
+
+library(rstatix)
+```
+
+    ## 
+    ## Attaching package: 'rstatix'
+    ## 
+    ## The following object is masked from 'package:stats':
+    ## 
+    ##     filter
+
+``` r
+library(broom)
+
+library(readr)
+```
+
+``` r
+data("anxiety", package = "datarium")
+
+print(anxiety)
+```
+
+    ## # A tibble: 45 × 5
+    ##    id    group    t1    t2    t3
+    ##    <fct> <fct> <dbl> <dbl> <dbl>
+    ##  1 1     grp1   14.1  14.4  14.1
+    ##  2 2     grp1   14.5  14.6  14.3
+    ##  3 3     grp1   15.7  15.2  14.9
+    ##  4 4     grp1   16    15.5  15.3
+    ##  5 5     grp1   16.5  15.8  15.7
+    ##  6 6     grp1   16.9  16.5  16.2
+    ##  7 7     grp1   17    16.8  16.5
+    ##  8 8     grp1   17    17.1  16.6
+    ##  9 9     grp1   17.3  16.9  16.5
+    ## 10 10    grp1   17.3  17.1  16.7
+    ## # … with 35 more rows
+    ## # ℹ Use `print(n = ...)` to see more rows
+
+``` r
+anxiety <- anxiety %>%
+  select(id, group, t1, t3) %>%
+  rename(pretest = t1, posttest = t3)
+
+# anxiety[14, "posttest"] <- 19
+```
+
+### *Check assumptions*
+
+#### *Linearity assumption*
+
+Create a scatter plot between the covariate (i.e., pretest) and the
+outcome variable (i.e., posttest) Add regression lines, show the
+corresponding equations and the R2 by groups
+
+``` r
+ggscatter(
+  anxiety, x = "pretest", y = "posttest",
+  color = "group", add = "reg.line"
+  )+
+  stat_regline_equation(
+    aes(label =  paste(..eq.label.., ..rr.label.., sep = "~~~~"), color = group)
+    )
+```
+
+    ## Warning: The dot-dot notation (`..eq.label..`) was deprecated in ggplot2 3.4.0.
+    ## ℹ Please use `after_stat(eq.label)` instead.
+    ## ℹ The deprecated feature was likely used in the ggpubr package.
+    ##   Please report the issue at <]8;;https://github.com/kassambara/ggpubr/issueshttps://github.com/kassambara/ggpubr/issues]8;;>.
+
+    ## `geom_smooth()` using formula = 'y ~ x'
+
+![](ANCOVA-in-R_files/figure-gfm/unnamed-chunk-3-1.png)<!-- --> There
+was a *linear* relationship between pre-test and post-test anxiety score
+for each training group, as assessed by visual inspection of a scatter
+plot.
+
+#### *Homogeneity of regression slopes*
+
+This assumption checks that there is no significant interaction between
+the covariate and the grouping variable. This can be evaluated as
+follow:
+
+``` r
+anxiety %>% 
+  anova_test(posttest ~ group*pretest)
+```
+
+    ## ANOVA Table (type II tests)
+    ## 
+    ##          Effect DFn DFd       F        p p<.05   ges
+    ## 1         group   2  39 150.518 4.58e-19     * 0.885
+    ## 2       pretest   1  39 402.297 3.77e-22     * 0.912
+    ## 3 group:pretest   2  39   0.899 4.15e-01       0.044
+
+There was homogeneity of regression slopes as the interaction term was
+not statistically significant, F(2, 39) = 0.13, p = 0.88.
+
+#### *Normality of residuals*
+
+You first need to compute the model using lm(). In R, you can easily
+augment your data to add fitted values and residuals by using the
+function augment(model) \[broom package\]. Let’s call the output
+model.metrics because it contains several metrics useful for regression
+diagnostics.
+
+``` r
+# Fit the model, the covariate goes first
+model <- lm(posttest ~ pretest + group, data = anxiety)
+
+# Inspect the model diagnostic metrics.
+# The "augment" funtion from the "broom" package helps to put the model metrics in a dataframe.
+model.metrics <- augment(model) %>%
+  select(group, .hat, .sigma, .fitted, .resid, .std.resid)
+
+# Remove details
+head(model.metrics, 3)
+```
+
+    ## # A tibble: 3 × 6
+    ##   group   .hat .sigma .fitted .resid .std.resid
+    ##   <fct>  <dbl>  <dbl>   <dbl>  <dbl>      <dbl>
+    ## 1 grp1  0.160   0.478    13.6  0.540      1.23 
+    ## 2 grp1  0.136   0.483    14.0  0.346      0.774
+    ## 3 grp1  0.0867  0.485    15.1 -0.238     -0.519
+
+Assess normality of residuals using shapiro wilk test
+
+``` r
+shapiro_test(model.metrics$.resid)
+```
+
+    ## # A tibble: 1 × 3
+    ##   variable             statistic p.value
+    ##   <chr>                    <dbl>   <dbl>
+    ## 1 model.metrics$.resid     0.961   0.136
+
+The Shapiro Wilk test was not significant (p \> 0.05), so we’ll fail to
+reject the null hypothesis that the distribution is normal, i.e the
+residual follows a normal distribution.
+
+#### *Homogeneity of variances*
+
+ANCOVA assumes that the variance of the residuals is equal for all
+groups. This can be checked using the Levene’s test:
+
+``` r
+model.metrics %>% levene_test(.resid ~ group)
+```
+
+    ## # A tibble: 1 × 4
+    ##     df1   df2 statistic     p
+    ##   <int> <int>     <dbl> <dbl>
+    ## 1     2    42     0.155 0.857
+
+The Levene’s test was not significant (p \> 0.05), so we’ll fail to
+reject the null hypothesis that the variance of the residuals is equal
+for all groups.
+
+#### *Outliers*
+
+An outlier is a point that has an extreme outcome variable value. The
+presence of outliers may affect the interpretation of the model.
+
+Outliers can be identified by examining the standardized residual (or
+studentized residual), which is the residual divided by its estimated
+standard error. Standardized residuals can be interpreted as the number
+of standard errors away from the regression line. Observations whose
+standardized residuals are greater than 3 in absolute value are possible
+outliers.
+
+we can view this by filtering the values where the standardized residual
+is less greater than 3:
+
+``` r
+model.metrics %>%
+  filter(abs(.std.resid) > 3)%>%
+  as.data.frame()
+```
+
+    ##   group      .hat    .sigma  .fitted   .resid .std.resid
+    ## 1  grp1 0.1224744 0.4165573 18.78933 -1.48933  -3.308361
+
+or by using plots:
+
+``` r
+# 
+outliers <- boxplot(model.metrics$.std.resid, plot = FALSE)$out
+
+# we can get the indexes of thi point by using the "which" funtion from dplyr
+# that give the TRUE indices of a logical object
+which(model.metrics$.std.resid %in% outliers)
+```
+
+    ## [1] 14 33
+
+``` r
+# we can also use the R diagnostic plots to view the outliers
+plot(model)
+```
+
+![](ANCOVA-in-R_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->![](ANCOVA-in-R_files/figure-gfm/unnamed-chunk-9-2.png)<!-- -->![](ANCOVA-in-R_files/figure-gfm/unnamed-chunk-9-3.png)<!-- -->![](ANCOVA-in-R_files/figure-gfm/unnamed-chunk-9-4.png)<!-- -->
+The outputs shows that positions 13, 14 and 33 are outliers.
+
+We’ll remove this positions from our data.
+
+``` r
+# we'll use the "slice" funtion from dplyr which Subset rows using their positions to remove the positions that contains the values that are outliers.
+anxiety <- anxiety %>%
+  slice(- c(13, 14, 33))
+```
+
+### *Computation*
+
+The orders of variables matters when computing ANCOVA. You want to
+remove the effect of the covariate first - that is, you want to control
+for it - prior to entering your main variable or interest. The covariate
+goes first (and there is no interaction)! If you do not do this in
+order, you will get different results.
+
+``` r
+res.aov <- anxiety %>%
+  anova_test(posttest ~ pretest + group)
+
+get_anova_table(res.aov)
+```
+
+    ## ANOVA Table (type II tests)
+    ## 
+    ##    Effect DFn DFd       F        p p<.05   ges
+    ## 1 pretest   1  38 576.384 1.44e-24     * 0.938
+    ## 2   group   2  38 217.692 1.54e-21     * 0.920
+
+After adjustment for pre-test anxiety score, there was a statistically
+significant difference in post-test anxiety score between the groups,
+F(2, 41) = 218.63, p \< 0.0001.
+
+### *Post-hoc test*
+
+Pairwise comparisons can be performed to identify which groups are
+different. The Bonferroni multiple testing correction is applied. This
+can be easily done using the function emmeans_test() \[rstatix
+package\], a wrapper around the emmeans package, which needs to be
+installed. Emmeans stands for estimated marginal means (aka least square
+means or adjusted means).
+
+``` r
+# Pairwise comparisons
+library(emmeans)
+pwc <- anxiety %>% 
+  emmeans_test(
+    posttest ~ group, covariate = pretest,
+    p.adjust.method = "bonferroni"
+    )
+pwc
+```
+
+    ## # A tibble: 3 × 9
+    ##   term          .y.      group1 group2    df statistic        p    p.adj p.adj…¹
+    ## * <chr>         <chr>    <chr>  <chr>  <dbl>     <dbl>    <dbl>    <dbl> <chr>  
+    ## 1 pretest*group posttest grp1   grp2      38      4.21 1.53e- 4 4.58e- 4 ***    
+    ## 2 pretest*group posttest grp1   grp3      38     19.6  1.70e-21 5.10e-21 ****   
+    ## 3 pretest*group posttest grp2   grp3      38     16.0  1.73e-18 5.19e-18 ****   
+    ## # … with abbreviated variable name ¹​p.adj.signif
+
+``` r
+# Display the adjusted means of each group
+# Also called as the estimated marginal means (emmeans)
+get_emmeans(pwc)
+```
+
+    ## # A tibble: 3 × 8
+    ##   pretest group emmean     se    df conf.low conf.high method      
+    ##     <dbl> <fct>  <dbl>  <dbl> <dbl>    <dbl>     <dbl> <chr>       
+    ## 1    16.8 grp1    16.3 0.104     38     16.1      16.5 Emmeans test
+    ## 2    16.8 grp2    15.7 0.0971    38     15.5      15.9 Emmeans test
+    ## 3    16.8 grp3    13.5 0.101     38     13.3      13.7 Emmeans test
+
+Data are adjusted mean +/- standard error. The mean anxiety score was
+statistically significantly greater in grp1 (16.4 +/- 0.15) compared to
+the grp2 (15.8 +/- 0.12) and grp3 (13.5 +/\_ 0.11), p \< 0.001.
+
+### *Report*
+
+An ANCOVA was run to determine the effect of exercises on the anxiety
+score after controlling for basal anxiety score of participants.
+
+After adjustment for pre-test anxiety score, there was a statistically
+significant difference in post-test anxiety score between the groups,
+F(2, 41) = 218.63, p \< 0.0001.
+
+Post hoc analysis was performed with a Bonferroni adjustment. The mean
+anxiety score was statistically significantly greater in grp1 (16.4 +/-
+0.15) compared to the grp2 (15.8 +/- 0.12) and grp3 (13.5 +/\_ 0.11), p
+\< 0.001.
+
+``` r
+# Visualization: line plots with p-values
+pwc <- pwc %>% add_xy_position(x = "group", fun = "mean_se")
+ggline(get_emmeans(pwc), x = "group", y = "emmean") +
+  geom_errorbar(aes(ymin = conf.low, ymax = conf.high), width = 0.2) + 
+  stat_pvalue_manual(pwc, hide.ns = TRUE, tip.length = FALSE) +
+  labs(
+    subtitle = get_test_label(res.aov, detailed = TRUE),
+    caption = get_pwc_label(pwc)
+  )
+```
+
+![](ANCOVA-in-R_files/figure-gfm/unnamed-chunk-14-1.png)<!-- -->
