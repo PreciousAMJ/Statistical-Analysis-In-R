@@ -1,0 +1,226 @@
+Mann-Whitney U Test in R
+================
+
+### *Introduction*
+
+A Mann-Whitney U test is typically performed when an analyst would like
+to test for differences between two independent treatments or
+conditions. However, the continuous response variable of interest is not
+normally distributed. For example, you may want to know if first-years
+students scored differently on an exam when compared to second-year
+students, but the exam scores for at **least one group** do not follow a
+normal distribution. The Mann-Whitney U test is often considered a
+nonparametric alternative to an independent sample t-test. The
+Mann-Whitney U test is also known as the Mann-Whitney-Wilcoxon,
+Wilcoxon-Mann-Whitney, and the Wilcoxon Rank Sum.
+
+A Mann-Whitney U test is typically performed when each experimental
+unit, (study subject) is only assigned one of the two available
+treatment conditions. Thus, the treatment groups do not have overlapping
+membership and are considered *independent* i.e not paired. A
+Mann-Whitney U test is considered a “between-subjects” analysis.
+
+Formally, the null hypothesis is that the distribution functions of both
+populations are equal. The alternative hypothesis is that the
+distribution functions are not equal.
+
+Informally, we are testing to see if mean ranks differ between groups.
+*Since mean ranks approximate the median*, many time analysts will
+indicate that we are testing for median differences even though this may
+not be considered formally correct. For this reason, many times
+descriptive statistics regarding median values are provided when the
+Mann-Whitney U test is performed.
+
+``` r
+library(readr)
+
+library(tidyverse)
+```
+
+    ## ── Attaching packages ─────────────────────────────────────── tidyverse 1.3.2 ──
+    ## ✔ ggplot2 3.3.6     ✔ dplyr   1.0.9
+    ## ✔ tibble  3.1.8     ✔ stringr 1.4.0
+    ## ✔ tidyr   1.2.0     ✔ forcats 0.5.1
+    ## ✔ purrr   0.3.4     
+    ## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+    ## ✖ dplyr::filter() masks stats::filter()
+    ## ✖ dplyr::lag()    masks stats::lag()
+
+Import the dataset
+
+``` r
+setwd("C:\\Users\\HP\\Documents\\Datasets")
+
+Diabetes_Data <- read_csv("C:\\Users\\HP\\Documents\\Datasets\\Diabetes Dataset.csv")
+```
+
+    ## New names:
+    ## Rows: 403 Columns: 24
+    ## ── Column specification
+    ## ──────────────────────────────────────────────────────── Delimiter: "," chr
+    ## (4): location, gender, frame, dm dbl (20): ...1, id, chol, stab.glu, hdl,
+    ## ratio, glyhb, age, height, weight, ...
+    ## ℹ Use `spec()` to retrieve the full column specification for this data. ℹ
+    ## Specify the column types or set `show_col_types = FALSE` to quiet this message.
+    ## • `` -> `...1`
+
+Let’s create different data frames for female and male
+
+``` r
+Female <- Diabetes_Data %>%
+  filter(gender == "female")
+
+Male <- Diabetes_Data %>%
+  filter(gender == "male")
+```
+
+Next, we’ll create variables for the stable blood glucose for males and
+females
+
+``` r
+Female_Stab_Glu <- Female$stab.glu
+
+Male_Stab_Glu <- Male$stab.glu
+```
+
+Let’s tale a look at the summary of our data
+
+``` r
+summary(Female_Stab_Glu)
+```
+
+    ##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+    ##    52.0    81.0    89.0   102.6   105.0   299.0
+
+``` r
+summary(Male_Stab_Glu)
+```
+
+    ##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+    ##    48.0    81.0    89.0   112.2   111.0   385.0
+
+### Normality Tests
+
+Prior to performing the Mann-Whitney U, it is important to evaluate our
+assumptions to ensure that we are performing an appropriate and reliable
+comparison. If normality is present, an independent samples t-test would
+be a more appropriate test.
+
+Testing normality should be performed using a Shapiro-Wilk normality
+test (or equivalent), and/or a QQ plots for large sample sizes. Many
+times, histograms can also be helpful..
+
+In this example, we will use the shapiro.test function from the stats
+package to produce our Shapiro-Wilk normality test for each variable,
+and use plots to view distributions.
+
+``` r
+hist(Female_Stab_Glu, col = "pink")
+```
+
+![](Mann-Whitney-U-Test-in-R_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
+
+``` r
+hist(Male_Stab_Glu, col = "steelblue")
+```
+
+![](Mann-Whitney-U-Test-in-R_files/figure-gfm/unnamed-chunk-6-2.png)<!-- -->
+
+``` r
+boxplot(Female_Stab_Glu, col = "pink")
+```
+
+![](Mann-Whitney-U-Test-in-R_files/figure-gfm/unnamed-chunk-6-3.png)<!-- -->
+
+``` r
+boxplot(Male_Stab_Glu, col = "steelblue")
+```
+
+![](Mann-Whitney-U-Test-in-R_files/figure-gfm/unnamed-chunk-6-4.png)<!-- -->
+The outputs shows that the stable blood glucose distribution for both
+genders is skewed to the left, which means that a non-parametric test is
+the suitable test to determine if there’s a difference between both
+variables.
+
+### *perform shapiro-wilk test*
+
+``` r
+shapiro.test(Female_Stab_Glu)
+```
+
+    ## 
+    ##  Shapiro-Wilk normality test
+    ## 
+    ## data:  Female_Stab_Glu
+    ## W = 0.68032, p-value < 2.2e-16
+
+``` r
+shapiro.test(Male_Stab_Glu)
+```
+
+    ## 
+    ##  Shapiro-Wilk normality test
+    ## 
+    ## data:  Male_Stab_Glu
+    ## W = 0.6388, p-value < 2.2e-16
+
+A p-value \< 0.05 would indicate that we should reject the assumption of
+normality. The Shapiro-Wilk Test p-values for both stable glucose groups
+are \< 0.05 and therefore, not normally distributed.
+
+### *Perform the Mann-Whitney U test*
+
+``` r
+Model <- wilcox.test(Female_Stab_Glu, Male_Stab_Glu, na.rm=TRUE, paired=FALSE, exact=FALSE, conf.int=TRUE)
+
+print(Model)
+```
+
+    ## 
+    ##  Wilcoxon rank sum test with continuity correction
+    ## 
+    ## data:  Female_Stab_Glu and Male_Stab_Glu
+    ## W = 18946, p-value = 0.4737
+    ## alternative hypothesis: true location shift is not equal to 0
+    ## 95 percent confidence interval:
+    ##  -5.000031  2.000011
+    ## sample estimates:
+    ## difference in location 
+    ##              -1.000037
+
+W – This value represents the Wilcoxon test statistic. The Wilcoxon test
+statistic is the sum of the ranks in sample 1 minus n1\*(n1+1)/2. n1 is
+the number of observations in sample 1.
+
+p-value – The p-value corresponding to the two-sided test based on the
+standard normal (Z) distribution.
+
+95% confidence interval – The 95% confidence interval on the difference
+between the stable glucose level for females and males.
+
+difference in location – This value corresponds to the Hodges-Lehmann
+Estimate of the location parameter differences the two groups.
+
+The Mann-Whitney U test results in a two-sided test p-value = 0.4737.
+This indicates that we should fail to reject the null hypothesis that
+distributions are equal and conclude that there is no significant
+difference in stable blood glucose between both genders.
+
+The Mann-Whitney U test is typically used as a last resort. This is
+because it is a lower power test when compared to the independent
+samples t-test.
+
+More modern alternatives include permutation/randomization tests,
+bootstrap confidence intervals, and transforming the data but each
+option will have its own stipulations.
+
+If you need to compare more than two independent groups, *a one-way
+Analysis of Variances (ANOVA) or Kruskal-Wallis* test may be
+appropriate.
+
+A Mann-Whitney U test is not appropriate if you have repeated
+measurements taken on the same experimental unit (subject). For example,
+if you have a pre-test post-test study, then each subject would be
+measured at two different time points. If this is the case, then *a
+paired t-test or corresponding nonparametric Wilcoxon signed-rank test*
+may be a more appropriate course of action.
